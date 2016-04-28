@@ -177,18 +177,18 @@ Task transform-select -action {
     $script:transformedData = $script:csvData |
     Select-Object -Property `
         @{ Name = "ID"                   ; Expression = { "" } },
-        @{ Name = "First Name"           ; Expression = { $_."Full Name" | Get-FirstName } },
-        @{ Name = "Last Name"            ; Expression = { $_."Full Name" | Get-LastName } },
-        @{ Name = "Email"                ; Expression = { $_."E-Mail" } },
-        @{ Name = "Phone Number"         ; Expression = { $_."Phone" } },
-        @{ Name = "Ref Number"           ; Expression = { $_."Customer ID" } },
+        @{ Name = "First Name"           ; Expression = { $_."First Name" } },
+        @{ Name = "Last Name"            ; Expression = { $_."Last Name" } },
+        @{ Name = "Email"                ; Expression = { $_."EMail" } },
+        @{ Name = "Phone Number"         ; Expression = { $_."Phone 1" } },
+        @{ Name = "Ref Number"           ; Expression = { $_."Phone 1" } },
         @{ Name = "Birth Date"           ; Expression = { "" } },
         @{ Name = "Company Name"         ; Expression = { $_."Company" } },
         @{ Name = "Address Email"        ; Expression = { "" } },
         @{ Name = "Address Phone Number" ; Expression = { "" } },
         @{ Name = "Address ID"           ; Expression = { $_."" } },
         @{ Name = "Street 1"             ; Expression = { $_."Street" } },
-        @{ Name = "Street 2"             ; Expression = { "" } },
+        @{ Name = "Street 2"             ; Expression = { $_."Street2" } },
         @{ Name = "City"                 ; Expression = { $_."City" } },
         @{ Name = "State"                ; Expression = { $_."State" } },
         @{ Name = "Zipcode"              ; Expression = { $_."ZIP" } },
@@ -203,11 +203,11 @@ Task transform-select -action {
 } -depends "load"
 
 Task export -action {
-    $script:transformedData | Export-Csv ".\dist\cf-members-export-20160428.csv" -Force -NoTypeInformation
+    $script:transformedData | Export-Csv ".\dist\cf-customers-export-non-rewards-20160428.csv" -Force -NoTypeInformation
 } -depends transform-select
 
 Task load -action {
-    $csv = ".\data\cf-members-20160428.csv"
+    $csv = ".\data\cf-customers-non-rewards-20160428.csv"
 
     $script:csvData = Import-Csv -Path $csv
     Write-Host "Member Rows: $($script:csvData.Count)"

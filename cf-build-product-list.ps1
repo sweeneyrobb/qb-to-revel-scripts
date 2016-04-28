@@ -12,8 +12,8 @@ function Add-AttributeTypeAndParent {
         $attributeType
     )
 
-    $row | 
-        Add-Member -Name "Attribute parent" -Value $parentId -MemberType NoteProperty -PassThru | 
+    $row |
+        Add-Member -Name "Attribute parent" -Value $parentId -MemberType NoteProperty -PassThru |
         Add-Member -Name "Attribute type" -Value $attributeType -MemberType NoteProperty -PassThru |
         Write-Output
 }
@@ -27,7 +27,7 @@ function Process-ProductGroup {
 
     $newList = New-Object System.Collections.Generic.List[System.Object]
 
-    $productList | 
+    $productList |
     Group-Object -Property 'Item Name' |
     ForEach-Object {
         if ($_.Count -gt 1) {
@@ -36,7 +36,7 @@ function Process-ProductGroup {
             $parent = New-ProductParent -sourceItem $source
             $newList.Add($parent)
 
-            $_.Group | ForEach-Object { 
+            $_.Group | ForEach-Object {
                 $name = $_."Item Name"
                 $_."Item Name" += " $($_.Attribute) $($_.Size)"
                 $newList.Add((Add-AttributeTypeAndParent -parentId $parent."Item Number" -attributeType "Child" -row $_))
@@ -82,8 +82,8 @@ function Process-ProductGroupForDuplicateCategory {
     )
     $newList = @()
 
-    $products | 
-    Group-Object -Property "Item Name" | 
+    $products |
+    Group-Object -Property "Item Name" |
     ForEach-Object {
         $groupedByDept = $_.Group | Group-Object { $script:categoryLookup[$_."Department Name"] }
 
@@ -157,20 +157,20 @@ function New-ProductParent {
     Add-Member -Name "Qty 3"                   -value 0                                     -MemberType NoteProperty -PassThru |
     Add-Member -Name "Eligible for Rewards"    -value $sourceItem."Eligible for Rewards"    -MemberType NoteProperty -PassThru |
     Add-Member -Name "Vendor Id"               -value $sourceItem."Vendor Id"               -MemberType NoteProperty -PassThru |
-    Add-Member -Name "Attribute parent"        -Value ""                                    -MemberType NoteProperty -PassThru | 
+    Add-Member -Name "Attribute parent"        -Value ""                                    -MemberType NoteProperty -PassThru |
     Add-Member -Name "Attribute type"          -Value "Parent"                              -MemberType NoteProperty -PassThru |
     Write-Output
 }
 
 Task transform -action {
-    $script:transformedData = $script:csvData | 
+    $script:transformedData = $script:csvData |
     Where-Object { $script:categoryLookup[$_."Department Name"] -ne "Not Used" } |
-    Where-Object { $_."Item Name" -ne "Accessories" -or 
-                   $_."Item Name" -ne "Accessories 10" -or 
-                   $_."Item Name" -ne "Accessories 20" -or 
-                   $_."Item Name" -ne "Accessories 30" -or 
-                   $_."Item Name" -ne "Accessories 40" -or 
-                   $_."Item Name" -ne "Accessories 50" -or 
+    Where-Object { $_."Item Name" -ne "Accessories" -and
+                   $_."Item Name" -ne "Accessories 10" -and
+                   $_."Item Name" -ne "Accessories 20" -and
+                   $_."Item Name" -ne "Accessories 30" -and
+                   $_."Item Name" -ne "Accessories 40" -and
+                   $_."Item Name" -ne "Accessories 50" -and
                    $_."Item Name" -ne "Accessories 60" }
 
     $script:transformedData = , $script:transformedData | Process-ProductGroupForDuplicateCategory | Process-ProductGroup
@@ -223,18 +223,18 @@ Task transform-select -action {
 } -depends "transform"
 
 Task export -action {
-    $script:transformedData | Export-Csv ".\test.csv" -Force -NoTypeInformation
+    $script:transformedData | Export-Csv ".\dist\test.csv" -Force -NoTypeInformation
 } -depends transform-select
 
 Task load -action {
-    $csv = ".\data\cf-products-20160414.csv"
+    $csv = ".\data\cf-products-20160428.csv"
     $vendorCsv = ".\data\cf-vendors.csv"
     $categoriesCsv = ".\data\cf-categories.csv"
 
     $script:csvData = Import-Csv -Path $csv
     Write-Host "Product Rows: $($script:csvData.Count)"
 
-    $script:vendorLookup = ,(Import-Csv -Path $vendorCsv) | 
+    $script:vendorLookup = ,(Import-Csv -Path $vendorCsv) |
                            New-Dictionary -key "Vendor name" -value "ID"
 
     Write-Host "Vendor Rows: $($script:vendorLookup.Keys.Count)"
@@ -274,7 +274,7 @@ function New-Dictionary {
     $inList | ForEach-Object {
         $hash.Add($_.$key, $_.$value)
     }
-    
+
     $hash | Write-Output
 }
 
